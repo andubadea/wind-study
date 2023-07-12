@@ -1,8 +1,28 @@
 from windrose import WindroseAxes
+import windrose
 import numpy as np
 import os
+import cartopy.crs as ccrs
+import cartopy.io.img_tiles as cimgt
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
+# Map properties
+minlon, maxlon, minlat, maxlat = (4.305, 4.325, 52.074, 52.081)
+
+proj = ccrs.PlateCarree()
+fig = plt.figure(figsize=(12, 6))
+# Draw main ax on top of which we will add windroses
+main_ax = fig.add_subplot(1, 1, 1, projection=proj)
+main_ax.set_extent([minlon, maxlon, minlat, maxlat], crs=proj)
+main_ax.gridlines(draw_labels=True)
+main_ax.coastlines()
+request = cimgt.OSM()
+main_ax.add_image(request, 14)
+figlist = []
+
+
+# Data file handling
 data_files = [x for x in os.listdir('data') if '.txt' in x]
 output_files = [x for x in data_files if 'output' in x]
 rooftop_files = [x for x in data_files if 'output' not in x]
@@ -12,7 +32,7 @@ rooftop_dirs = []
 rooftop_speeds = []
 rooftop_gusts = []
 for rooftop_file in rooftop_files:
-    with open(rooftop_file, 'r') as f:
+    with open('data/'+rooftop_file, 'r') as f:
         contents = f.readlines()
         
     data_split = contents[0].split('  ')
@@ -29,7 +49,7 @@ print(avg_dir, avg_spd, avg_gust)
 # Now let's create wind roses
 for output_file in output_files:
     # Load the data
-    with open(output_file, 'r') as f:
+    with open('data/'+output_file, 'r') as f:
         contents = f.readlines()
         
     # Each line is a measurement point, so let's try getting the data for this
@@ -57,10 +77,10 @@ for output_file in output_files:
             wind_gusts.append(float(line_dict['windGust']))
         
     # Create the wind rose
-    ax = WindroseAxes.from_ax()
-    ax.bar(wind_dirs, wind_spds, normed=True, opening=0.8, edgecolor="white")
-    ax.set_legend()
-    ax.figure.savefig('figs/' + output_file.replace('.txt', '.png'))
+    # ax = WindroseAxes.from_ax()
+    # ax.bar(wind_dirs, wind_spds, normed=True, opening=0.8, edgecolor="white")
+    # ax.set_legend()
+    # ax.figure.savefig('figs/' + output_file.replace('.txt', '.png'))
         
         
     # We can also extract good info by just splitting the filename
@@ -70,4 +90,20 @@ for output_file in output_files:
     date = f'{output_file_split[4]}-{output_file_split[3]}-{output_file_split[2]}'
     time = f'{output_file_split[5]}:{output_file_split[6]}:{output_file_split[7].replace(".txt","")}'
     
+    # Add the windrose
+    rose = inset_axes(
+                    main_ax,
+                    width=0.75,  # size in inches
+                    height=0.75,  # size in inches
+                    loc="center",  # center bbox at given position
+                    bbox_to_anchor=(lon, lat),  # position of the axe
+                    bbox_transform=main_ax.transData,  # use data coordinate (not axe coordinate)
+                    axes_class=windrose.WindroseAxes,  # specify the class of the axe
+                    )
+    rose.bar(wind_dirs, wind_spds)
+    figlist.append(rose)
     
+for ax in figlist:
+    ax.tick_params(labelleft=False, labelbottom=False)
+    
+plt.show()
