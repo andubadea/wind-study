@@ -4,8 +4,8 @@ from datetime import datetime
 from datetime import timedelta
 import numpy as np
 
-lat = 52.07916
-lon = 4.30818
+lat = 52.07920
+lon = 4.30823
 location = Point(lat, lon, 100)
 
 start = datetime.now() - timedelta(minutes=60)
@@ -18,7 +18,7 @@ wind = np.array(data)[0][5:8]
 
 # save to file
 now = datetime.now()
-filename = f'{lat}-{lon}-{now.year}-{now.month}-{now.day}-{now.hour}-{now.minute}-{now.second}.txt'
+filename = f'data/{lat}-{lon}-{now.year}-{now.month}-{now.day}-{now.hour}-{now.minute}-{now.second}.txt'
 
 with open(filename, 'w') as f:
     f.write(str(wind))

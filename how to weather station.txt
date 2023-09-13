@@ -1,0 +1,8 @@
+su localadmin
+cd /Users/Shared/weewx
+sudo python3 bin/weewxd weewx.conf >> output.txt
+
+Clear contents of file:
+sudo > output.txt
+
+Copy the file after each run!!!!!
