@@ -1,6 +1,7 @@
 from windrose import WindroseAxes
 import windrose
 import numpy as np
+from scipy.stats import circmean, circstd
 import os
 import cartopy.crs as ccrs
 import cartopy.io.img_tiles as cimgt
@@ -42,7 +43,7 @@ for rooftop_file in rooftop_files:
     rooftop_dirs.append(float(data_split[0].replace('[','')))
     rooftop_speeds.append(float(data_split[1].replace(' ','')))
     rooftop_gusts.append(float(data_split[2].replace(']','')))
-    
+
 avg_dir = np.average(rooftop_dirs)
 avg_spd = np.average(rooftop_speeds) / 3.6 #kph to mps
 avg_gust = np.average(rooftop_gusts) / 3.6 #kph to mps
@@ -80,11 +81,11 @@ for output_file in output_files:
             wind_gusts.append(float(line_dict['windGust']))
         
     # Create the wind rose
-    # ax = WindroseAxes.from_ax()
-    # ax.bar(wind_dirs, wind_spds, normed=True, opening=0.8, edgecolor="white")
-    # ax.set_legend()
-    # ax.figure.savefig('figs/' + output_file.replace('.txt', '.png'))
-        
+    ax = WindroseAxes.from_ax()
+    ax.bar(wind_dirs, wind_spds, normed=True, opening=0.8, edgecolor="white")
+    ax.set_legend()
+    ax.figure.savefig('figs/' + output_file.replace('.txt', '.png'))
+    
         
     # We can also extract good info by just splitting the filename
     output_file_split = output_file.split('-')
@@ -92,6 +93,11 @@ for output_file in output_files:
     lon = float(output_file_split[1])
     date = f'{output_file_split[4]}-{output_file_split[3]}-{output_file_split[2]}'
     time = f'{output_file_split[5]}:{output_file_split[6]}:{output_file_split[7].replace(".txt","")}'
+    
+    print(lat, lon)
+    print(np.rad2deg(circmean(np.deg2rad(wind_dirs))), np.rad2deg(circstd(np.deg2rad(wind_dirs))))
+    print(np.average(wind_spds), np.std(wind_spds))
+    print(max(wind_gusts))
     
     # Add the windrose
     rose = inset_axes(
